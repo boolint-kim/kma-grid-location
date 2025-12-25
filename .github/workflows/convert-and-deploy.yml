@@ -4,8 +4,7 @@ name: Convert Excel to JSON and Deploy to R2
 on:
   push:
     paths:
-      - 'raw/*.xlsx'
-      - 'raw/*.xls'
+      - 'raw/**'
   workflow_dispatch:
 
 jobs:
@@ -16,6 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       
+      - name: List files in raw directory
+        run: |
+          echo "Files in raw directory:"
+          ls -la raw/ || echo "raw directory not found"
+      
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -25,18 +29,21 @@ jobs:
         run: |
           pip install pandas openpyxl
       
-      - name: Create processed directory
-        run: mkdir -p processed
-      
       - name: Convert Excel to JSON
         run: |
           python scripts/excel_to_json.py
+      
+      - name: List files in processed directory
+        run: |
+          echo "Files in processed directory:"
+          ls -la processed/
       
       - name: Read version
         id: version
         run: |
           VERSION=$(cat processed/location_version.txt)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Converted version: $VERSION"
       
       - name: Install Wrangler
         run: npm install -g wrangler
@@ -47,8 +54,10 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
+          echo "Deploying to R2..."
           wrangler r2 object put kma-grid-location/location.json --file=processed/location.json
           wrangler r2 object put kma-grid-location/location_version.txt --file=processed/location_version.txt
+          echo "Deployment completed!"
       
       - name: Commit processed files
         run: |
@@ -56,4 +65,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add processed/
           git diff --staged --quiet || git commit -m "Auto-convert: Excel to JSON [v${{ steps.version.outputs.VERSION }}]"
-          git push
+          git push || echo "No changes to commit"
