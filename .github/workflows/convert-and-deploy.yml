@@ -11,7 +11,6 @@ jobs:
   convert-and-deploy:
     runs-on: ubuntu-latest
     
-    # 권한 추가
     permissions:
       contents: write
     
@@ -45,6 +44,9 @@ jobs:
           echo "Files in processed directory:"
           ls -la processed/
           echo ""
+          echo "JSON file size:"
+          du -h processed/location.json
+          echo ""
           echo "Version:"
           cat processed/location_version.txt
       
@@ -64,10 +66,21 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
-          echo "Deploying to R2..."
-          wrangler r2 object put kma-grid-location/location.json --file=processed/location.json
-          wrangler r2 object put kma-grid-location/location_version.txt --file=processed/location_version.txt
+          echo "Deploying to R2 (remote)..."
+          wrangler r2 object put kma-grid-location/location.json \
+            --file=processed/location.json \
+            --remote
+          
+          wrangler r2 object put kma-grid-location/location_version.txt \
+            --file=processed/location_version.txt \
+            --remote
+          
           echo "Deployment completed!"
+          
+          echo ""
+          echo "Verifying upload..."
+          wrangler r2 object get kma-grid-location/location.json --remote > /dev/null && echo "✓ location.json uploaded" || echo "✗ location.json upload failed"
+          wrangler r2 object get kma-grid-location/location_version.txt --remote > /dev/null && echo "✓ location_version.txt uploaded" || echo "✗ location_version.txt upload failed"
       
       - name: Commit processed files
         run: |
@@ -76,7 +89,6 @@ jobs:
           
           git add processed/
           
-          # 변경사항이 있으면 커밋
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
