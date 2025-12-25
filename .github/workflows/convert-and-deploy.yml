@@ -46,8 +46,8 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
-          npx wrangler r2 object put weather-data/location.json --file=processed/location.json
-          npx wrangler r2 object put weather-data/location_version.txt --file=processed/location_version.txt
+          npx wrangler r2 object put kma-grid-location/location.json --file=processed/location.json
+          npx wrangler r2 object put kma-grid-location/location_version.txt --file=processed/location_version.txt
       
       - name: Commit processed files
         run: |
