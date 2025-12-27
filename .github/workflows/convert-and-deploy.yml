@@ -44,16 +44,6 @@ jobs:
           echo ""
           echo "JSON file size:"
           du -h processed/kma_grid_location.json
-          echo ""
-          echo "Version:"
-          cat processed/kma_grid_location_version.txt
-      
-      - name: Read version
-        id: version
-        run: |
-          VERSION=$(cat processed/kma_grid_location_version.txt)
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "Converted version: $VERSION"
       
       - name: Commit processed files
         run: |
@@ -65,7 +55,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Auto-convert: Excel to JSON [v${{ steps.version.outputs.VERSION }}]"
+            git commit -m "Auto-convert: Excel to JSON"
             git push
             echo "Successfully pushed to repository"
           fi
