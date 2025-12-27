@@ -43,15 +43,15 @@ jobs:
           ls -la processed/
           echo ""
           echo "JSON file size:"
-          du -h processed/location.json
+          du -h processed/kma_grid_location.json
           echo ""
           echo "Version:"
-          cat processed/location_version.txt
+          cat processed/kma_grid_location_version.txt
       
       - name: Read version
         id: version
         run: |
-          VERSION=$(cat processed/location_version.txt)
+          VERSION=$(cat processed/kma_grid_location_version.txt)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "Converted version: $VERSION"
       
